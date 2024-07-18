@@ -32,14 +32,14 @@ Vy=0*X*Y#поле проекции скоростей Vy
 зависит только от положения осей X и Y внутри meshgrid.
 То есть Z=Y*X(=X*Y) даст такой же массив.'''
 
-def D_x(N,i,j):#Взятие частной производной по x
-    return (N[i+1][j]-N[i-1][j])/(2*dx)
-def D_y(N,i,j):#Взятие частной производной по y
-    return (N[i][j+1]-N[i][j-1])/(2*dy)
-def Lap(N,i,j):#Взятие лапласиана
-    x=(N[i+1][j]-2*N[i][j]+N[i-1][j])/(dx*dx)
-    y=(N[i][j+1]-2*N[i][j]+N[i][j-1])/(dy*dy)
-    return x+y
+def D_x(N,x,y):#Взятие частной производной по x
+    return (N[x+1][y]-N[x-1][y])/(2*dx)
+def D_y(N,x,y):#Взятие частной производной по y
+    return (N[x][y+1]-N[x][y-1])/(2*dy)
+def Lap(N,x,y):#Взятие лапласиана
+    N1=(N[x+1][y]-2*N[x][y]+N[x-1][y])/(dx*dx)
+    N2=(N[x][y+1]-2*N[x][y]+N[x][y-1])/(dy*dy)
+    return N1+N2
 
 fig,cs=plt.subplots()
 cs = plt.contourf(dx*(X-(Nx-1)/2),dy*(Y-(Ny-1)/2),Z*5*10**10,levels=15)
@@ -48,24 +48,24 @@ cbar.set_label('Концентрация N, см^-2')
 plt.title('Время t = '+str(t)+' пс')
 plt.xlabel('Ось X, мкм')
 plt.ylabel('Ось Y, мкм')
-def Eq1(Z,Vx,Vy,i,j):
-    N1=-Z[i][j]*(D_x(Vx,i,j)+D_y(Vy,i,j))
-    N2=-Vx[i][j]*D_x(Z,i,j)-Vy[i][j]*D_y(Z,i,j)
+def Eq1(x,y):
+    N1=-Z[x][y]*(D_x(Vx,x,y)+D_y(Vy,x,y))
+    N2=-Vx[x][y]*D_x(Z,x,y)-Vy[x][y]*D_y(Z,x,y)
     return N1+N2
-def Eq2(Z,Vx,Vy,i,j):
-    N1=-Vx[i][j]*Eq1(Z,Vx,Vy,i,j)
-    N2=-A*Z[i][j]*Vx[i][j]-B*D_x(Z,i,j)-C*D_x(Z,i,j)
-    N3=D*Z[i][j]*Lap(Vx,i,j)
-    N4=D*D_x(Z,i,j)*(D_x(Vx,i,j)-D_y(Vy,i,j))
-    N5=D*D_y(Z,i,j)*(D_y(Vx,i,j)+D_x(Vy,i,j))
-    return (N1+N2+N3+N4+N5)/Z[i,j]
-def Eq3(Z,Vx,Vy,i,j):
-    N1=-Vy[i][j]*Eq1(Z,Vx,Vy,i,j)
-    N2=-A*Z[i][j]*Vy[i][j]-B*D_y(Z,i,j)-C*D_y(Z,i,j)
-    N3=D*Z[i][j]*Lap(Vy,i,j)
-    N4=D*D_y(Z,i,j)*(D_y(Vy,i,j)-D_x(Vx,i,j))
-    N5=D*D_x(Z,i,j)*(D_x(Vy,i,j)+D_y(Vx,i,j))
-    return (N1+N2+N3+N4+N5)/Z[i,j]
+def Eq2(x,y):
+    N1=-Vx[x][y]*Eq1(x,y)
+    N2=-A*Z[x][y]*Vx[x][y]-B*D_x(Z,x,y)-C*D_x(Z,x,y)
+    N3=D*Z[x][y]*Lap(Vx,x,y)
+    N4=D*D_x(Z,x,y)*(D_x(Vx,x,y)-D_y(Vy,x,y))
+    N5=D*D_y(Z,x,y)*(D_y(Vx,x,y)+D_x(Vy,x,y))
+    return (N1+N2+N3+N4+N5)/Z[x,y]
+def Eq3(x,y):
+    N1=-Vy[x][y]*Eq1(x,y)
+    N2=-A*Z[x][y]*Vy[x][y]-B*D_y(Z,x,y)-C*D_y(Z,x,y)
+    N3=D*Z[x][y]*Lap(Vy,x,y)
+    N4=D*D_y(Z,x,y)*(D_y(Vy,x,y)-D_x(Vx,x,y))
+    N5=D*D_x(Z,x,y)*(D_x(Vy,x,y)+D_y(Vx,x,y))
+    return (N1+N2+N3+N4+N5)/Z[x,y]
 def EulerStep(frame):
     global Z,Vx,Vy,t
     ZZ=0*X*Y
@@ -74,9 +74,9 @@ def EulerStep(frame):
     for k in range(10):#количество итераций за фрейм
         for i in range(1,Ny-1):#будет цикл от 1 до Nx-2
             for j in range(1,Nx-1):
-                ZZ[i][j]=Z[i][j]+Eq1(Z,Vx,Vy,i,j)*dt#уравнение непрерывноести
-                VVx[i][j]=Vx[i][j]+Eq2(Z,Vx,Vy,i,j)*dt#гидродинамическое
-                VVy[i][j]=Vy[i][j]+Eq3(Z,Vx,Vy,i,j)*dt#гидродинамическое
+                ZZ[i][j]=Z[i][j]+Eq1(i,j)*dt#уравнение непрерывноести
+                VVx[i][j]=Vx[i][j]+Eq2(i,j)*dt#гидродинамическое
+                VVy[i][j]=Vy[i][j]+Eq3(i,j)*dt#гидродинамическое
         t=t+dt
     plt.clf()
     Z=ZZ
