@@ -10,7 +10,7 @@ Ny=41
 Lx=5*10**-4# см 
 Ly=5*10**-4# см 
 N_0=1*10**11# см^-2
-D_0=3*10**0# см^2/сек
+D_0=1*10**0# см^2/сек
 R_a=1*10**-1# см^2/сек
 V0D0_KbT=1*10**-10# см^4/сек
 tau=500*10**-12# сек
@@ -61,7 +61,7 @@ def EulerStep(frame):
         anim.event_source.stop()
 fig,cs=plt.subplots()
 makeplot()
-anim=FuncAnimation(fig,EulerStep,frames=None)
+#anim=FuncAnimation(fig,EulerStep,frames=None)
 plt.show()
 
     

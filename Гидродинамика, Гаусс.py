@@ -38,8 +38,10 @@ Y, X = np.meshgrid(
 )
 Z=np.exp(-1/R_0/R_0*10**-8*((dx*(X-(Nx-1)/2))**2+(dy*(Y-(Ny-1)/2))**2))+10**-10
 #Элемент (x,y) определён как Z[x][y]
-Vx=0*X*Y#поле проекции скоростей Vx
-Vy=0*X*Y#поле проекции скоростей Vy
+Vx=0*X*Y+dx*(X-(Nx-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
+#поле проекции скоростей Vx
+Vy=0*X*Y+dy*(Y-(Ny-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
+#поле проекции скоростей Vy
 '''Почему-то то, каким получится массив после умножения
 зависит только от положения осей X и Y внутри meshgrid.
 То есть Z=Y*X(=X*Y) даст такой же массив.'''
@@ -56,7 +58,7 @@ def makeplot():
     cs = plt.contourf(dx*(X-(Nx-1)/2),dy*(Y-(Ny-1)/2),Z*N_0,levels=15)
     cbar=plt.colorbar(cs)
     cbar.set_label('Концентрация N, см^-2')
-    plt.title('Время t = '+str(t)+' пс')
+    plt.title('Время t = '+str(t)+' пс (Гидродинамика)')
     plt.xlabel('Ось X, мкм')
     plt.ylabel('Ось Y, мкм')
 def Eq1(x,y):
@@ -86,7 +88,7 @@ def EulerStep(frame):
         for i in range(1,Nx-1):#будет цикл от 1 до Nx-2
             for j in range(1,Ny-1):
                 ZZ[i][j]=Z[i][j]+Eq1(i,j)*dt#уравнение непрерывноести
-                if Z[i][j]>10**-10:
+                if Z[i][j]>10**-11:
                     VVx[i][j]=Vx[i][j]+Eq2(i,j)*dt#гидродинамическое
                     VVy[i][j]=Vy[i][j]+Eq3(i,j)*dt#гидродинамическое
                 else:
@@ -118,5 +120,6 @@ fig,cs=plt.subplots()
 makeplot()
 anim=FuncAnimation(fig,EulerStep,frames=None)
 plt.show()
+print((np.sqrt(KbT/m))*10**-8)
 
 
