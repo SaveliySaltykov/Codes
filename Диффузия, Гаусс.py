@@ -37,7 +37,7 @@ Z=np.exp(-1/R_0/R_0*10**-8*((dx*(X-(Nx-1)/2))**2+(dy*(Y-(Ny-1)/2))**2))#+10**-10
 зависит только от положения осей X и Y внутри meshgrid.
 То есть Z=Y*X(=X*Y) даст такой же массив.'''
 def makeplot():
-    cs = plt.contourf(dx*(X-(Nx-1)/2),dy*(Y-(Ny-1)/2),Z*5*10**10,levels=15)
+    cs = plt.contourf(dx*(X-(Nx-1)/2),dy*(Y-(Ny-1)/2),Z*N_0,levels=15)
     cbar=plt.colorbar(cs)
     cbar.set_label('Концентрация N, см^-2')
     plt.title('Время t = '+str(t)+' пс')
