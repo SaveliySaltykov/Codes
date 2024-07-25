@@ -10,7 +10,7 @@ Ny=41
 Lx=5*10**-4# см 
 Ly=5*10**-4# см 
 N_0=1*10**11# см^-2
-D_0=1*10**0# см^2/сек
+D_0=3*10**0# см^2/сек
 R_a=1*10**-1# см^2/сек
 V0D0_KbT=1*10**-10# см^4/сек
 tau=500*10**-12# сек
@@ -52,16 +52,16 @@ def EulerStep(frame):
                 N1=A*Z[i][j]+B*Z[i][j]*Z[i][j]
                 N2=C*((Z[i][j+1]-2*Z[i][j]+Z[i][j-1])/(dy*dy)+(Z[i+1][j]-2*Z[i][j]+Z[i-1][j])/(dx*dx))
                 N3=D*((Z[i][j+1]**2-2*Z[i][j]**2+Z[i][j-1]**2)/(2*dy*dy)+(Z[i+1][j]**2-2*Z[i][j]**2+Z[i-1][j]**2)/(2*dx*dx))
-                ZZ[i][j]=Z[i][j]+N1+N2+N3
+                ZZ[i][j]=Z[i][j]+(N1+N2+N3)*dt
         t=t+1
         Z=ZZ
     plt.clf()
     makeplot()   
-    if t==500:#Время (пс), на котором нужно остановить расчёт
+    if t==1000:#Время (пс), на котором нужно остановить расчёт
         anim.event_source.stop()
 fig,cs=plt.subplots()
 makeplot()
-#anim=FuncAnimation(fig,EulerStep,frames=None)
+anim=FuncAnimation(fig,EulerStep,frames=None)
 plt.show()
 
     
