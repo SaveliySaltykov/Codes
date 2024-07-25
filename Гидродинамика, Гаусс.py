@@ -36,11 +36,11 @@ Y, X = np.meshgrid(
     np.linspace(0, Ny-1, Ny),
     np.linspace(0, Nx-1, Nx)
 )
-Z=np.exp(-1/R_0/R_0*10**-8*((dx*(X-(Nx-1)/2))**2+(dy*(Y-(Ny-1)/2))**2))+10**-10
+Z=np.exp(-1/R_0/R_0*10**-8*((dx*(X-(Nx-1)/2))**2+(dy*(Y-(Ny-1)/2))**2))+10**-23
 #Элемент (x,y) определён как Z[x][y]
-Vx=0*X*Y+dx*(X-(Nx-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
+Vx=0*X*Y#+dx*(X-(Nx-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
 #поле проекции скоростей Vx
-Vy=0*X*Y+dy*(Y-(Ny-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
+Vy=0*X*Y#+dy*(Y-(Ny-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
 #поле проекции скоростей Vy
 '''Почему-то то, каким получится массив после умножения
 зависит только от положения осей X и Y внутри meshgrid.
@@ -88,24 +88,22 @@ def EulerStep(frame):
         for i in range(1,Nx-1):#будет цикл от 1 до Nx-2
             for j in range(1,Ny-1):
                 ZZ[i][j]=Z[i][j]+Eq1(i,j)*dt#уравнение непрерывноести
-                if Z[i][j]>10**-11:
-                    VVx[i][j]=Vx[i][j]+Eq2(i,j)*dt#гидродинамическое
-                    VVy[i][j]=Vy[i][j]+Eq3(i,j)*dt#гидродинамическое
-                else:
-                    VVx[i][j]=0
-                    VVy[i][j]=0
-                    
-                
-                '''if i==Nx-2 or j==Ny-2 or i==1 or j==1:
-                    ZZ[i][j]=0
-                    VVx[i][j]=0
-                    VVy[i][j]=0
+                #if Z[i][j]>10**-2:
+                VVx[i][j]=Vx[i][j]+Eq2(i,j)*dt#гидродинамическое
+                VVy[i][j]=Vy[i][j]+Eq3(i,j)*dt#гидродинамическое
+               # else:
+               #     VVx[i][j]=Vx[i][j]
+               #     VVy[i][j]=Vy[i][j]
         for i in range(1,Nx-1):
             VVy[i][0]=VVy[i][1]
             VVy[i][Ny-1]=VVy[i][Ny-2]
+            VVx[i][0]=VVx[i][1]
+            VVx[i][Ny-1]=VVx[i][Ny-2]
         for j in range(1,Nx-1):
             VVx[0][j]=VVx[1][j]
-            VVx[Nx-1][j]=VVx[Nx-2][j]'''
+            VVx[Nx-1][j]=VVx[Nx-2][j]
+            VVy[0][j]=VVy[1][j]
+            VVy[Nx-1][j]=VVy[Nx-2][j]
         Z=ZZ
         Vx=VVx
         Vy=VVy
@@ -114,11 +112,12 @@ def EulerStep(frame):
     makeplot()
     
     
-    if t==500:#Время (пс), на котором нужно остановить расчёт
+    if t==1000:#Время (пс), на котором нужно остановить расчёт
         anim.event_source.stop()
 fig,cs=plt.subplots()
 makeplot()
 anim=FuncAnimation(fig,EulerStep,frames=None)
+
 plt.show()
 print((np.sqrt(KbT/m))*10**-8)
 
