@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 параметры вводятся в СГС, а расчёты ведутся в (пс,мкм,N0)'''
 Pi=3.141592653589
 #ВВод начальных параметров, СГС
-Nx=100
-Ny=100#Количество узлов сетки
-Lx=8*10**-4# см 
-Ly=8*10**-4# см 
+Nx=40
+Ny=40#Количество узлов сетки
+Lx=5*10**-4# см 
+Ly=5*10**-4# см 
 tau_0=5.3*10**-13# сек 
 KbT=5.52*10**-16# эрг
 m=0.62*9.1*10**-28# г
@@ -30,7 +30,7 @@ D=tau_ex_ex*KbT/m*10**-4# мкм^2/пс
 dx=Lx*10**4/(Nx-1)
 dy=Ly*10**4/(Ny-1)#Шаги сетки по осям Х и У, мкм
 t=0#время, пс
-dt=1#пс
+dt=0.5#пс
 Y, X = np.meshgrid(
     np.linspace(0, Ny-1, Ny),
     np.linspace(0, Nx-1, Nx)
@@ -38,7 +38,7 @@ Y, X = np.meshgrid(
 Z=np.exp(-1/R_0/R_0*10**-8*((dx*(X-(Nx-1)/2))**2+(dy*(Y-(Ny-1)/2))**2))
 for i in range(0,Nx):
     for j in range(0,Ny):
-        if Z[i][j]<10**-20:
+        if Z[i][j]<10**-10:
             Z[i][j]=0
 #Элемент (x,y) определён как Z[x][y]
 Vx=0*X*Y#+dx*(X-(Nx-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
@@ -70,15 +70,15 @@ def Eq1(x,y):
     return N1+N2
 def Eq2(x,y):
     N1=-Vx[x][y]*Eq1(x,y)/Z[x,y]
-    N2=-A*Z[x][y]*Vx[x][y]-B*D_x(Z,x,y)/Z[x,y]-C*D_x(Z,x,y)
-    N3=D*Z[x][y]*Lap(Vx,x,y)
+    N2=-A*Vx[x][y]-B*D_x(Z,x,y)/Z[x,y]-C*D_x(Z,x,y)
+    N3=D*Lap(Vx,x,y)#*Z[x][y]
     N4=D*D_x(Z,x,y)*(D_x(Vx,x,y)-D_y(Vy,x,y))/Z[x,y]
     N5=D*D_y(Z,x,y)*(D_y(Vx,x,y)+D_x(Vy,x,y))/Z[x,y]
     return (N1+N2+N3+N4+N5)
 def Eq3(x,y):
     N1=-Vy[x][y]*Eq1(x,y)/Z[x,y]
-    N2=-A*Z[x][y]*Vy[x][y]-B*D_y(Z,x,y)/Z[x,y]-C*D_y(Z,x,y)
-    N3=D*Z[x][y]*Lap(Vy,x,y)
+    N2=-A*Vy[x][y]-B*D_y(Z,x,y)/Z[x,y]-C*D_y(Z,x,y)
+    N3=D*Lap(Vy,x,y)#*Z[x][y]
     N4=D*D_y(Z,x,y)*(D_y(Vy,x,y)-D_x(Vx,x,y))/Z[x,y]
     N5=D*D_x(Z,x,y)*(D_x(Vy,x,y)+D_y(Vx,x,y))/Z[x,y]
     return (N1+N2+N3+N4+N5)
@@ -101,7 +101,7 @@ def EulerStep(frame):
                 else:
                     VVx[i][j]=Vx[i][j]+Eq2(i,j)*dt#гидродинамическое
                     VVy[i][j]=Vy[i][j]+Eq3(i,j)*dt#гидродинамическое
-        """for i in range(1,Nx-1):
+        for i in range(1,Nx-1):
             VVy[i][0]=VVy[i][1]
             VVy[i][Ny-1]=VVy[i][Ny-2]
             VVx[i][0]=VVx[i][1]
@@ -110,7 +110,7 @@ def EulerStep(frame):
             VVx[0][j]=VVx[1][j]
             VVx[Nx-1][j]=VVx[Nx-2][j]
             VVy[0][j]=VVy[1][j]
-            VVy[Nx-1][j]=VVy[Nx-2][j]"""
+            VVy[Nx-1][j]=VVy[Nx-2][j]
         Z=ZZ
         Vx=VVx
         Vy=VVy
@@ -118,8 +118,6 @@ def EulerStep(frame):
 fig,cs=plt.subplots()
 makeplot()
 anim=FuncAnimation(fig,EulerStep,frames=None)
-
 plt.show()
-print((np.sqrt(KbT/m))*10**-8)
 
 
