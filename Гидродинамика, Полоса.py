@@ -30,16 +30,17 @@ D=tau_ex_ex*KbT/m*10**-4# мкм^2/пс
 dx=Lx*10**4/(Nx-3)
 dy=Ly*10**4/(Ny-3)#Шаги сетки по осям Х и У, мкм
 t=0#время, пс
-dt=1#пс
+dt=0.1#пс
 Y, X = np.meshgrid(
     np.linspace(0, Ny-1, Ny),
     np.linspace(0, Nx-1, Nx)
 )
-Z=0*X*Y#+N_0*10**-8*10**-2#Костыль "фоновая засветка", поскольку концентрация в знаменателе
+Z=0*X*Y+N_0*10**-8*10**-2#Костыль "фоновая засветка", поскольку концентрация в знаменателе
 #Элемент (x,y) определён как Z[x][y]
 for j in range(0,Ny):
-    Z[1][j]=N_0*10**-8#мкм^-2#НУ
-    Z[2][j]=N_0*10**-8
+    Z[10][j]=N_0*10**-8#мкм^-2#НУ
+    Z[11][j]=N_0*10**-8
+    Z[12][j]=N_0*10**-8
 Vx=0*X*Y#+dx*(X-(Nx-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
 #поле проекции скоростей Vx
 Vy=0*X*Y#+dy*(Y-(Ny-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
@@ -83,19 +84,19 @@ def Eq1(x,y):
     N2=-Vx[x][y]*D_x(Z,x,y)-Vy[x][y]*D_y(Z,x,y)
     return N1+N2
 def Eq2(x,y):
-    N1=-Vx[x][y]*Eq1(x,y)
-    N2=-A*Z[x][y]*Vx[x][y]-B*D_x(Z,x,y)-C*D_x(Z,x,y)
+    N1=-Vx[x][y]*Eq1(x,y)/Z[x,y]
+    N2=-A*Z[x][y]*Vx[x][y]-B*D_x(Z,x,y)/Z[x,y]-C*D_x(Z,x,y)
     N3=D*Z[x][y]*Lap(Vx,x,y)
-    N4=D*D_x(Z,x,y)*(D_x(Vx,x,y)-D_y(Vy,x,y))
-    N5=D*D_y(Z,x,y)*(D_y(Vx,x,y)+D_x(Vy,x,y))
-    return (N1+N2+N3+N4+N5)/Z[x,y]
+    N4=D*D_x(Z,x,y)*(D_x(Vx,x,y)-D_y(Vy,x,y))/Z[x,y]
+    N5=D*D_y(Z,x,y)*(D_y(Vx,x,y)+D_x(Vy,x,y))/Z[x,y]
+    return (N1+N2+N3+N4+N5)
 def Eq3(x,y):
-    N1=-Vy[x][y]*Eq1(x,y)
-    N2=-A*Z[x][y]*Vy[x][y]-B*D_y(Z,x,y)-C*D_y(Z,x,y)
+    N1=-Vy[x][y]*Eq1(x,y)/Z[x,y]
+    N2=-A*Z[x][y]*Vy[x][y]-B*D_y(Z,x,y)/Z[x,y]-C*D_y(Z,x,y)
     N3=D*Z[x][y]*Lap(Vy,x,y)
-    N4=D*D_y(Z,x,y)*(D_y(Vy,x,y)-D_x(Vx,x,y))
-    N5=D*D_x(Z,x,y)*(D_x(Vy,x,y)+D_y(Vx,x,y))
-    return (N1+N2+N3+N4+N5)/Z[x,y]
+    N4=D*D_y(Z,x,y)*(D_y(Vy,x,y)-D_x(Vx,x,y))/Z[x,y]
+    N5=D*D_x(Z,x,y)*(D_x(Vy,x,y)+D_y(Vx,x,y))/Z[x,y]
+    return (N1+N2+N3+N4+N5)
 def EulerStep(frame):
     global Z,Vx,Vy,t
     plt.clf()
@@ -105,25 +106,26 @@ def EulerStep(frame):
     ZZ=0*X*Y
     VVx=0*X*Y
     VVy=0*X*Y
-    for j in range(0,Ny):
-        ZZ[0][j]=Z[1][j]
-        #VVx[0][j]=Vx[0][j]
-    for i in range(0,Nx):
-        ZZ[i][0]=Z[i][1]
-        ZZ[i][Ny-1]=Z[i][Ny-2]
+    
     for k in range(1):#количество итераций за фрейм анимации
+        for i in range(0,Nx):
+            Z[i][0]=Z[i][1]
+            Z[i][Ny-1]=Z[i][Ny-2]
+        for j in range(0,Ny):
+            Z[0][j]=Z[1][j]
         for i in range(1,Nx-1):#цикл от 1 до Nx-2
             for j in range(1,Ny-1):
-                ZZ[i][j]=Z[i][j]+Eq1(i,j)*dt#уравнение непрерывноести
-        Z=ZZ
-        for i in range(1,Nx-1):#цикл от 1 до Nx-2
-            for j in range(1,Ny-1):
-                if ZZ[i][j]==0:
+                if Z[i][j]==0:
                     VVx[i][j]=Vx[i][j]
                     VVy[i][j]=Vy[i][j]
                 else:
                     VVx[i][j]=Vx[i][j]+Eq2(i,j)*dt#гидродинамическое
                     VVy[i][j]=Vy[i][j]+Eq3(i,j)*dt#гидродинамическое
+        #VVx[0][j]=Vx[0][j]
+        for i in range(1,Nx-1):#цикл от 1 до Nx-2
+            for j in range(1,Ny-1):
+                ZZ[i][j]=Z[i][j]+Eq1(i,j)*dt#уравнение непрерывноести
+        Z=ZZ
         Vx=VVx
         Vy=VVy
         t=round(t,2)+dt
