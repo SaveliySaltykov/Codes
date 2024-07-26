@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 параметры вводятся в СГС, а расчёты ведутся в (пс,мкм,N0)'''
 Pi=3.141592653589
 #ВВод начальных параметров, СГС
-Nx=151#количество узлов сетки
-Ny=31
+Nx=101#количество узлов сетки
+Ny=21
 Lx=5*10**-4# см 
 Ly=1*10**-4# см 
 N_0=1*10**11# см^-2
@@ -51,18 +51,18 @@ def EulerStep(frame):
     for k in range(10):#количество итераций за фрейм
         for j in range(1,Ny-1):#Граничное условие
             N1=A*Z[0][j]+B*Z[0][j]*Z[0][j]
-            N2=C*((Z[1][j]-2*Z[0][j])/(dx*dx)+(Z[0][j+1]-2*Z[0][j]+Z[0][j-1])/(dy*dy))
-            N3=D*((Z[1][j]**2-2*Z[0][j]**2)/(2*dx*dx)+(Z[0][j+1]**2-2*Z[0][j]**2+Z[0][j-1]**2)/(2*dy*dy))
+            N2=C*((Z[0][j+1]-2*Z[0][j]+Z[0][j-1])/(dy*dy)+(Z[1][j]-2*Z[0][j]+Z[0][j])/(dx*dx))
+            N3=D*((Z[0][j+1]**2-2*Z[0][j]**2+Z[0][j-1]**2)/(2*dy*dy)+(Z[1][j]**2-2*Z[0][j]**2+Z[0][j]**2)/(2*dx*dx))
             ZZ[0][j]=Z[0][j]+(N1+N2+N3)*dt
         for i in range(1,Nx-1):#Граничное условие
             N1=A*Z[i][0]+B*Z[i][0]*Z[i][0]
-            N2=C*((Z[i+1][0]-2*Z[i][0]+Z[i-1][0])/(dx*dx)+(Z[i][1]-2*Z[i][0])/(dy*dy))
-            N3=D*((Z[i+1][0]**2-2*Z[i][0]**2+Z[i-1][0]**2)/(2*dx*dx)+(Z[i][1]**2-2*Z[i][0]**2)/(2*dy*dy))
+            N2=C*((Z[i][1]-2*Z[i][0]+Z[i][0])/(dy*dy)+(Z[i+1][0]-2*Z[i][0]+Z[i-1][0])/(dx*dx))
+            N3=D*((Z[i][1]**2-2*Z[i][0]**2+Z[i][0]**2)/(2*dy*dy)+(Z[i+1][0]**2-2*Z[i][0]**2+Z[i-1][0]**2)/(2*dx*dx))
             ZZ[i][0]=Z[i][0]+(N1+N2+N3)*dt
         for i in range(1,Nx-1):#Граничное условие
             N1=A*Z[i][Ny-1]+B*Z[i][Ny-1]*Z[i][Ny-1]
-            N2=C*((Z[i+1][Ny-1]-2*Z[i][Ny-1]+Z[i-1][Ny-1])/(dx*dx)+(0-2*Z[i][Ny-1]+Z[i][Ny-2])/(dy*dy))
-            N3=D*((Z[i+1][Ny-1]**2-2*Z[i][Ny-1]**2+Z[i-1][Ny-1]**2)/(2*dx*dx)+(0-2*Z[i][Ny-1]**2+Z[i][Ny-2]**2)/(2*dy*dy))
+            N2=C*((Z[i][Ny-2]-2*Z[i][Ny-1]+Z[i][Ny-1])/(dy*dy)+(Z[i+1][Ny-1]-2*Z[i][Ny-1]+Z[i-1][Ny-1])/(dx*dx))
+            N3=D*((Z[i][Ny-2]**2-2*Z[i][Ny-1]**2+Z[i][Ny-1]**2)/(2*dy*dy)+(Z[i+1][Ny-1]**2-2*Z[i][Ny-1]**2+Z[i-1][Ny-1]**2)/(2*dx*dx))
             ZZ[i][Ny-1]=Z[i][Ny-1]+(N1+N2+N3)*dt
         for i in range(1,Nx-1):
             for j in range(1,Ny-1):
@@ -70,6 +70,15 @@ def EulerStep(frame):
                 N2=C*((Z[i][j+1]-2*Z[i][j]+Z[i][j-1])/(dy*dy)+(Z[i+1][j]-2*Z[i][j]+Z[i-1][j])/(dx*dx))
                 N3=D*((Z[i][j+1]**2-2*Z[i][j]**2+Z[i][j-1]**2)/(2*dy*dy)+(Z[i+1][j]**2-2*Z[i][j]**2+Z[i-1][j]**2)/(2*dx*dx))
                 ZZ[i][j]=Z[i][j]+(N1+N2+N3)*dt
+        N1=A*Z[0][Ny-1]+B*Z[0][Ny-1]*Z[0][Ny-1]
+        N2=C*((Z[0][Ny-2]-2*Z[0][Ny-1]+Z[0][Ny-1])/(dy*dy)+(Z[1][Ny-1]-2*Z[0][Ny-1]+Z[0][Ny-1])/(dx*dx))
+        N3=D*((Z[0][Ny-2]**2-2*Z[0][Ny-1]**2+Z[0][Ny-1]**2)/(2*dy*dy)+(Z[1][Ny-1]**2-2*Z[0][Ny-1]**2+Z[0][Ny-1]**2)/(2*dx*dx))
+        ZZ[0][Ny-1]=Z[0][Ny-1]+(N1+N2+N3)*dt
+        N1=A*Z[0][0]+B*Z[0][0]*Z[0][0]
+        N2=C*((Z[0][1]-2*Z[0][0]+Z[0][0])/(dy*dy)+(Z[1][0]-2*Z[0][0]+Z[0][0])/(dx*dx))
+        N3=D*((Z[0][1]**2-2*Z[0][0]**2+Z[0][0]**2)/(2*dy*dy)+(Z[1][0]**2-2*Z[0][0]**2+Z[0][0]**2)/(2*dx*dx))
+        ZZ[0][0]=Z[0][0]+(N1+N2+N3)*dt
+        
         t=t+dt
         Z=ZZ
     plt.clf()
@@ -79,5 +88,5 @@ def EulerStep(frame):
 plt.rcParams ['figure.figsize'] = [30*Lx/(Lx+Ly), 30*Ly/(Lx+Ly)]
 fig,cs=plt.subplots()
 makeplot()
-#anim=FuncAnimation(fig,EulerStep,frames=None)
+anim=FuncAnimation(fig,EulerStep,frames=None)
 plt.show()
