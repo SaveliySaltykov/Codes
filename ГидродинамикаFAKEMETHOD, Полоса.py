@@ -47,11 +47,11 @@ Vy=0*X*Y#+dy*(Y-(Ny-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
 зависит только от положения осей X и Y внутри meshgrid.
 То есть Z=Y*X(=X*Y) даст такой же массив.'''
 def D_x(N,x,y):#Взятие частной производной по x
-    return (N[x+1][y]-N[x-1][y])/(2*dx)
+    return (N[x+1][y]-N[x][y])/(dx)
 def D_y(N,x,y):#Взятие частной производной по y
     return (N[x][y+1]-N[x][y-1])/(2*dy)
 def Lap(N,x,y):#Взятие лапласиана
-    N1=(N[x+1][y]-2*N[x][y]+N[x-1][y])/(dx*dx)
+    N1=(N[x+2][y]-2*N[x-1][y]+N[x][y])/(dx*dx)
     N2=(N[x][y+1]-2*N[x][y]+N[x][y-1])/(dy*dy)
     return N1+N2
 def makeplot():
@@ -109,23 +109,20 @@ def EulerStep(frame):
     
     
     for k in range(1):#количество итераций за фрейм анимации
-        """for i in range(0,Nx):
+        for i in range(0,Nx):
             Z[i][0]=Z[i][1]
             Z[i][Ny-1]=Z[i][Ny-2]
         for j in range(0,Ny):
-            Z[0][j]=Z[1][j]"""
-        for i in range(2,Nx-2):#цикл от 1 до Nx-2
-            for j in range(2,Ny-2):
-                #ZZ[i][j]=Z[i][j]+Eq1(i,j)*dt#уравнение непрерывноести
+            Z[0][j]=Z[1][j]
+        for i in range(1,Nx-2): 
+            for j in range(1,Ny-1):
+                ZZ[i][j]=Z[i][j]+Eq1(i,j)*dt#уравнение непрерывноести
                 if Zavrg(i,j)==0:
                     VVx[i][j]=Vx[i][j]
                     VVy[i][j]=Vy[i][j]
                 else:
                     VVx[i][j]=Vx[i][j]+Eq2(i,j)*dt#гидродинамическое
                     VVy[i][j]=Vy[i][j]+Eq3(i,j)*dt#гидродинамическое
-        for i in range(1,Nx-1):#цикл от 1 до Nx-2
-            for j in range(1,Ny-1):
-                ZZ[i][j]=Z[i][j]+Eq1(i,j)*dt#уравнение непрерывноести
         Z=ZZ
         Vx=VVx
         Vy=VVy

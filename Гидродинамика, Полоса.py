@@ -30,12 +30,12 @@ D=tau_ex_ex*KbT/m*10**-4# мкм^2/пс
 dx=Lx*10**4/(Nx-3)
 dy=Ly*10**4/(Ny-3)#Шаги сетки по осям Х и У, мкм
 t=0#время, пс
-dt=0.5#пс
+dt=10**-10#пс
 Y, X = np.meshgrid(
     np.linspace(0, Ny-1, Ny),
     np.linspace(0, Nx-1, Nx)
 )
-Z=0*X*Y
+Z=0*X*Y+10**-10
 #Элемент (x,y) определён как Z[x][y]
 for j in range(0,Ny):
     Z[1][j]=1
@@ -47,7 +47,7 @@ Vy=0*X*Y#+dy*(Y-(Ny-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
 зависит только от положения осей X и Y внутри meshgrid.
 То есть Z=Y*X(=X*Y) даст такой же массив.'''
 def D_x(N,x,y):#Взятие частной производной по x
-    return (N[x][y]-N[x-1][y])/(dx)
+    return (N[x+1][y]-N[x-1][y])/(dx)
 def D_y(N,x,y):#Взятие частной производной по y
     return (N[x][y+1]-N[x][y-1])/(2*dy)
 def Lap(N,x,y):#Взятие лапласиана
@@ -74,7 +74,7 @@ def makeplot():
     cs = plt.contourf(dx*XX,dy*YY,ZZ*N_0,levels=15)#ZZ*N_0
     cbar=plt.colorbar(cs)
     cbar.set_label('Концентрация N, см^-2')
-    plt.title('Время t = '+str(t)+' пс')
+    plt.title('Время t = '+str(round(t))+' пс')
     plt.xlabel('Ось X, мкм')
     plt.ylabel('Ось Y, мкм')
 def Eq1(x,y):
@@ -87,49 +87,56 @@ def Eq2(x,y):
     N3=D*Lap(Vx,x,y)#*Z[x][y]
     N4=D*D_x(Z,x,y)*(D_x(Vx,x,y)-D_y(Vy,x,y))/Z[x][y]
     N5=D*D_y(Z,x,y)*(D_y(Vx,x,y)+D_x(Vy,x,y))/Z[x][y]
-    return (N1+N2+N3+N4+N5)
+    return N1+N2+N3+N4+N5
 def Eq3(x,y):
     N1=-Vy[x][y]*Eq1(x,y)/Z[x][y]
     N2=-A*Vy[x][y]-B*D_y(Z,x,y)/Z[x][y]-C*D_y(Z,x,y)
     N3=D*Lap(Vy,x,y)#*Z[x][y]
     N4=D*D_y(Z,x,y)*(D_y(Vy,x,y)-D_x(Vx,x,y))/Z[x][y]
     N5=D*D_x(Z,x,y)*(D_x(Vy,x,y)+D_y(Vx,x,y))/Z[x][y]
-    return (N1+N2+N3+N4+N5)
+    return N1+N2+N3+N4+N5
 def EulerStep(frame):
-    global Z,Vx,Vy,t
+    global Z,Vx,Vy,t,dt
     plt.clf()
     makeplot()
-    if round(t)==1000:#Время (пс), на котором нужно остановить расчёт
-        anim.event_source.stop()
+    
     ZZ=0*X*Y
     VVx=0*X*Y
     VVy=0*X*Y
-    
-    
-    for k in range(1):#количество итераций за фрейм анимации
-        """for i in range(0,Nx):
+    if t>=dt*10:
+        dt=dt*10
+    if dt>10**-3:
+        dt=10**-3
+    if t>0.1:
+        dt=0.01
+    if t>2:
+        dt=0.1
+    if t>15:
+        dt=0.5
+    for k in range(100):#количество итераций за фрейм анимации
+        if round(t)==500:#Время (пс), на котором нужно остановить расчёт
+            plt.clf()
+            makeplot()
+            anim.event_source.stop()
+        for i in range(0,Nx):
             Z[i][0]=Z[i][1]
             Z[i][Ny-1]=Z[i][Ny-2]
         for j in range(0,Ny):
-            Z[0][j]=Z[1][j]"""
-        for i in range(1,Nx-1): 
-            for j in range(2,Ny-2):
-                #ZZ[i][j]=Z[i][j]+Eq1(i,j)*dt#уравнение непрерывноести
-                if Z[i][j]==0:
+            Z[0][j]=Z[1][j]
+        for i in range(1,Nx-2): 
+            for j in range(1,Ny-1):
+                ZZ[i][j]=Z[i][j]+Eq1(i,j)*dt#уравнение непрерывноести
+                if ZZ[i][j]==0:
                     VVx[i][j]=Vx[i][j]
                     VVy[i][j]=Vy[i][j]
                 else:
                     VVx[i][j]=Vx[i][j]+Eq2(i,j)*dt#гидродинамическое
                     VVy[i][j]=Vy[i][j]+Eq3(i,j)*dt#гидродинамическое
-        for i in range(1,Nx-1):#цикл от 1 до Nx-2
-            for j in range(1,Ny-1):
-                ZZ[i][j]=Z[i][j]+Eq1(i,j)*dt#уравнение непрерывноести
         Z=ZZ
         Vx=VVx
         Vy=VVy
-        print(Z[2][2])
-        t=round(t,2)+dt
-        t=round(t,2)
+        #print(Z[2][2])
+        t=t+dt
 plt.rcParams ['figure.figsize'] = [30*Lx/(Lx+Ly), 30*Ly/(Lx+Ly)]
 fig,cs=plt.subplots()
 makeplot()
