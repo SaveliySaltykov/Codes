@@ -37,7 +37,7 @@ Y, X = np.meshgrid(
 )
 Z=0*X*Y+10**-10
 #Элемент (x,y) определён как Z[x][y]
-for j in range(0,Ny):
+for j in range(1,Ny-1):
     Z[1][j]=1
 Vx=0*X*Y#+dx*(X-(Nx-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
 #поле проекции скоростей Vx
@@ -95,26 +95,31 @@ def Eq3(x,y):
     N4=D*D_y(Z,x,y)*(D_y(Vy,x,y)-D_x(Vx,x,y))/Z[x][y]
     N5=D*D_x(Z,x,y)*(D_x(Vy,x,y)+D_y(Vx,x,y))/Z[x][y]
     return N1+N2+N3+N4+N5
+P=1
 def EulerStep(frame):
-    global Z,Vx,Vy,t,dt
+    global Z,Vx,Vy,t,dt,P
     plt.clf()
     makeplot()
     
     ZZ=0*X*Y
     VVx=0*X*Y
     VVy=0*X*Y
-    if t>=dt*10:
-        dt=dt*10
-    if dt>10**-3:
-        dt=10**-3
-    if t>0.1:
-        dt=0.01
-    if t>2:
-        dt=0.1
-    if t>15:
-        dt=0.5
-    for k in range(100):#количество итераций за фрейм анимации
-        if round(t)==500:#Время (пс), на котором нужно остановить расчёт
+    
+    for k in range(P):#количество итераций за фрейм анимации
+        if t>=dt*10:
+            dt=dt*10
+        if dt>10**-3:
+            dt=10**-3
+        if t>0.1:
+            dt=0.01
+        if t>2:
+            dt=0.1
+            P=10
+        if t>15:
+            dt=0.25
+            P=50
+            
+        if round(t)==750:#Время (пс), на котором нужно остановить расчёт
             plt.clf()
             makeplot()
             anim.event_source.stop()
@@ -132,10 +137,19 @@ def EulerStep(frame):
                 else:
                     VVx[i][j]=Vx[i][j]+Eq2(i,j)*dt#гидродинамическое
                     VVy[i][j]=Vy[i][j]+Eq3(i,j)*dt#гидродинамическое
+        for i in range(0,Nx-2):
+            VVx[i][1]=0
+            VVx[i][Ny-2]=0
+        for j in range(0,Ny):
+            VVy[1][j]=0
+            #VVy[i][1]=0
+            #VVy[i][Ny-2]=0
+        ZZ[1][1]=ZZ[1][2]
+        ZZ[1][Ny-2]=ZZ[1][Ny-3]
         Z=ZZ
         Vx=VVx
         Vy=VVy
-        #print(Z[2][2])
+       # print(Z[2][2])
         t=t+dt
 plt.rcParams ['figure.figsize'] = [30*Lx/(Lx+Ly), 30*Ly/(Lx+Ly)]
 fig,cs=plt.subplots()
