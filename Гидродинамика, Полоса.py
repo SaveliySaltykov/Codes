@@ -77,6 +77,14 @@ def makeplot():
     plt.title('Время t = '+str(round(t))+' пс')
     plt.xlabel('Ось X, мкм')
     plt.ylabel('Ось Y, мкм')
+    if t==0:
+        print(ZZ)
+    if round(t)==250:
+        print(ZZ)
+    if round(t)==500:
+        print(ZZ)
+    if round(t)==750:
+        print(ZZ)
 def Eq1(x,y):
     N1=-Z[x][y]*(D_x(Vx,x,y)+D_y(Vy,x,y))
     N2=-Vx[x][y]*D_x(Z,x,y)-Vy[x][y]*D_y(Z,x,y)
@@ -118,7 +126,12 @@ def EulerStep(frame):
         if t>15:
             dt=0.25
             P=50
-            
+        if round(t)==250:
+            plt.clf()
+            makeplot()
+        if round(t)==500:
+            plt.clf()
+            makeplot()    
         if round(t)==750:#Время (пс), на котором нужно остановить расчёт
             plt.clf()
             makeplot()
@@ -151,6 +164,7 @@ def EulerStep(frame):
         Vy=VVy
        # print(Z[2][2])
         t=t+dt
+        
 plt.rcParams ['figure.figsize'] = [30*Lx/(Lx+Ly), 30*Ly/(Lx+Ly)]
 fig,cs=plt.subplots()
 makeplot()
