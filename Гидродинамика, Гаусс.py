@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 параметры вводятся в СГС, а расчёты ведутся в (пс,мкм,N0)'''
 Pi=3.141592653589
 #ВВод начальных параметров, СГС
-Nx=40
-Ny=40#Количество узлов сетки
-Lx=5*10**-4# см 
-Ly=5*10**-4# см 
-tau_0=5.3*10**-13# сек 
+Nx=50
+Ny=50#Количество узлов сетки
+Lx=7*10**-4# см 
+Ly=7*10**-4# см 
+tau_0=5.3*10**-12# сек 
 KbT=5.52*10**-16# эрг
 m=0.62*9.1*10**-28# г
 V_0=1.21*1.6*10**-26# эрг*см^2
@@ -35,11 +35,11 @@ Y, X = np.meshgrid(
     np.linspace(0, Ny-1, Ny),
     np.linspace(0, Nx-1, Nx)
 )
-Z=np.exp(-1/R_0/R_0*10**-8*((dx*(X-(Nx-1)/2))**2+(dy*(Y-(Ny-1)/2))**2))
-for i in range(0,Nx):
+Z=np.exp(-1/R_0/R_0*10**-8*((dx*(X-(Nx-1)/2))**2+(dy*(Y-(Ny-1)/2))**2))+10**-10
+"""for i in range(0,Nx):
     for j in range(0,Ny):
         if Z[i][j]<10**-10:
-            Z[i][j]=0
+            Z[i][j]=0"""
 #Элемент (x,y) определён как Z[x][y]
 Vx=0*X*Y#+dx*(X-(Nx-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
 #поле проекции скоростей Vx
@@ -58,7 +58,7 @@ def Lap(N,x,y):#Взятие лапласиана
     N2=(N[x][y+1]-2*N[x][y]+N[x][y-1])/(dy*dy)
     return N1+N2
 def makeplot():
-    cs = plt.contourf(dx*(X-(Nx-1)/2),dy*(Y-(Ny-1)/2),Z*N_0,levels=15)
+    cs = plt.contourf(dx*(X-(Nx-1)/2),dy*(Y-(Ny-1)/2),Z*N_0,cmap='jet',levels=15)
     cbar=plt.colorbar(cs)
     cbar.set_label('Концентрация N, см^-2')
     plt.title('Время t = '+str(t)+' пс (Гидродинамика)')
@@ -86,7 +86,7 @@ def EulerStep(frame):
     global Z,Vx,Vy,t
     plt.clf()
     makeplot()
-    if round(t)==1000:#Время (пс), на котором нужно остановить расчёт
+    if round(t)==250:#Время (пс), на котором нужно остановить расчёт
         anim.event_source.stop()
     ZZ=0*X*Y
     VVx=0*X*Y
@@ -117,7 +117,7 @@ def EulerStep(frame):
         t=round(t,2)+dt
 fig,cs=plt.subplots()
 makeplot()
-anim=FuncAnimation(fig,EulerStep,frames=None)
+#anim=FuncAnimation(fig,EulerStep,frames=None)
 plt.show()
 
 

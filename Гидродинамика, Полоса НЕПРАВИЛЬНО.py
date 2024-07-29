@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 параметры вводятся в СГС, а расчёты ведутся в (пс,мкм,N0)'''
 Pi=3.141592653589
 #ВВод начальных параметров, СГС
-Nx=53#количество узлов сетки
-Ny=18
+Nx=33#количество узлов сетки
+Ny=13
 Lx=3*10**-4# см 
 Ly=1*10**-4# см 
 tau_0=5.3*10**-12# сек 
@@ -35,7 +35,7 @@ Y, X = np.meshgrid(
     np.linspace(0, Ny-1, Ny),
     np.linspace(0, Nx-1, Nx)
 )
-Z=0*X*Y#+10**-10
+Z=0*X*Y+10**-8
 #Элемент (x,y) определён как Z[x][y]
 for j in range(1,Ny-1):
     Z[1][j]=1
@@ -103,16 +103,7 @@ def Eq3(x,y):
     N4=D*D_y(Z,x,y)*(D_y(Vy,x,y)-D_x(Vx,x,y))/Z[x][y]
     N5=D*D_x(Z,x,y)*(D_x(Vy,x,y)+D_y(Vx,x,y))/Z[x][y]
     return N1+N2+N3+N4+N5
-def Eq2Special(x,y):
-    N1=Vx[x][y]*(D_x(Vx,x,y)+D_y(Vy,x,y))
-    N2=-A*Vx[x][y]-C*D_x(Z,x,y)
-    N3=D*Lap(Vx,x,y)#*Z[x][y]
-    return N1+N2+N3
-def Eq3Special(x,y):
-    N1=Vy[x][y]*(D_x(Vx,x,y)+D_y(Vy,x,y))
-    N2=-A*Vy[x][y]-C*D_y(Z,x,y)
-    N3=D*Lap(Vy,x,y)#*Z[x][y]
-    return N1+N2+N3
+
     
 P=1
 def EulerStep(frame):
@@ -125,7 +116,14 @@ def EulerStep(frame):
     VVy=0*X*Y
     
     for k in range(P):#количество итераций за фрейм анимации
-        dt=1
+        if t>10*dt:
+            dt=dt*10
+        if t>0.01:
+            dt=0.001
+        if t>0.2:
+            dt=0.01
+        if t>2:
+            dt=0.1
         if round(t)==250:
             plt.clf()
             makeplot()
@@ -138,38 +136,38 @@ def EulerStep(frame):
             plt.title('Время t = '+str(round(t))+' пс')
             anim.event_source.stop()
         for i in range(0,Nx):
-            Z[i][0]=Z[i][1]
-            Z[i][Ny-1]=Z[i][Ny-2]
-            Vy[i][0]=Vy[i][1]
-            Vy[i][Ny-1]=Vy[i][Ny-2]
+            Z[i][0]=2*Z[i][1]-Z[i][2]
+            Z[i][Ny-1]=2*Z[i][Ny-2]-Z[i][Ny-3]
+            Vy[i][0]=2*Vy[i][1]-Vy[i][2]
+            Vy[i][Ny-1]=2*Vy[i][Ny-2]-Vy[i][Ny-3]
+            Vx[i][0]=2*Vx[i][1]-Vx[i][2]
+            Vx[i][Ny-1]=2*Vx[i][Ny-2]-Vx[i][Ny-3]
         for j in range(0,Ny):
-            Z[0][j]=Z[1][j]
-            Vx[0][j]=Vx[1][j]
-            Z[Nx-1][j]=Z[Nx-2][j]
-            Vx[Nx-1][j]=Vx[Nx-2][j]
+            Z[0][j]=2*Z[1][j]-Z[2][j]
+            Vx[0][j]=2*Vx[1][j]-Vx[2][j]
+            Vy[0][j]=2*Vy[1][j]-Vy[2][j]
+            Z[Nx-1][j]=2*Z[Nx-2][j]-Z[Nx-3][j]
+            Vx[Nx-1][j]=2*Vx[Nx-2][j]-Vx[Nx-3][j]
+            Vy[Nx-1][j]=2*Vy[Nx-2][j]-Vy[Nx-3][j]
         for i in range(1,Nx-1): 
             for j in range(1,Ny-1):
                 ZZ[i][j]=Z[i][j]+Eq1(i,j)*dt#уравнение непрерывноести
-                if ZZ[i][j]<10**-5:
-                    VVx[i][j]=Vx[i][j]+Eq2Special(i,j)*dt
-                    VVy[i][j]=Vy[i][j]+Eq3Special(i,j)*dt
-                else:
-                    VVx[i][j]=Vx[i][j]+Eq2(i,j)*dt#гидродинамическое
-                    VVy[i][j]=Vy[i][j]+Eq3(i,j)*dt#гидродинамическое
-        for i in range(0,Nx-2):
+                VVx[i][j]=Vx[i][j]+Eq2(i,j)*dt#гидродинамическое
+                VVy[i][j]=Vy[i][j]+Eq3(i,j)*dt#гидродинамическое
+        """for i in range(0,Nx-2):
             VVx[i][1]=0
             VVx[i][Ny-2]=0
         for j in range(0,Ny):
             VVy[1][j]=0
-            VVy[Nx-1][j]=0
+            VVy[Nx-1][j]=0"""
         Z=ZZ
         Vx=VVx
         Vy=VVy
         Count=0
-        for i in range(1,Nx-1): 
-            for j in range(1,Ny-1):
+        for i in range(1,Nx-2): 
+            for j in range(1,Ny-2):
                 Count=Count+Z[i][j]
-        print(Count)
+        print(str(Count)+'\t'+str(Vx[2][2]))
         t=t+dt
         
 plt.rcParams ['figure.figsize'] = [30*Lx/(Lx+Ly), 30*Ly/(Lx+Ly)]

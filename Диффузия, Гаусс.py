@@ -5,12 +5,12 @@ import matplotlib.pyplot as plt
 параметры вводятся в СГС, а расчёты ведутся в (пс,мкм,N0)'''
 Pi=3.141592653589
 #ВВод начальных параметров, СГС
-Nx=41#количество узлов сетки
-Ny=41
-Lx=5*10**-4# см 
-Ly=5*10**-4# см 
+Nx=51#количество узлов сетки
+Ny=51
+Lx=7*10**-4# см 
+Ly=7*10**-4# см 
 N_0=1*10**11# см^-2
-D_0=1*10**0# см^2/сек
+D_0=3*10**0# см^2/сек
 R_a=1*10**-1# см^2/сек
 V0D0_KbT=1*10**-10# см^4/сек
 tau=500*10**-12# сек
@@ -37,10 +37,10 @@ Z=np.exp(-1/R_0/R_0*10**-8*((dx*(X-(Nx-1)/2))**2+(dy*(Y-(Ny-1)/2))**2))#+10**-10
 зависит только от положения осей X и Y внутри meshgrid.
 То есть Z=Y*X(=X*Y) даст такой же массив.'''
 def makeplot():
-    cs = plt.contourf(dx*(X-(Nx-1)/2),dy*(Y-(Ny-1)/2),Z*N_0,levels=15)
+    cs = plt.contourf(dx*(X-(Nx-1)/2),dy*(Y-(Ny-1)/2),Z*N_0,cmap='jet',levels=15)
     cbar=plt.colorbar(cs)
     cbar.set_label('Концентрация N, см^-2')
-    plt.title('Время t = '+str(t)+' пс')
+    plt.title('Время t = '+str(t)+' пс (Диффузия)')
     plt.xlabel('Ось X, мкм')
     plt.ylabel('Ось Y, мкм')
 def EulerStep(frame):
@@ -57,11 +57,11 @@ def EulerStep(frame):
         Z=ZZ
     plt.clf()
     makeplot()   
-    if t==500:#Время (пс), на котором нужно остановить расчёт
+    if t==250:#Время (пс), на котором нужно остановить расчёт
         anim.event_source.stop()
 fig,cs=plt.subplots()
 makeplot()
-anim=FuncAnimation(fig,EulerStep,frames=None)
+#anim=FuncAnimation(fig,EulerStep,frames=None)
 plt.show()
 
     
