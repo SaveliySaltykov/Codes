@@ -9,7 +9,7 @@ Nx=33#количество узлов сетки
 Ny=13
 Lx=3*10**-4# см 
 Ly=1*10**-4# см 
-tau_0=5.3*10**-13# сек 
+tau_0=5.3*10**-12# сек 
 KbT=5.52*10**-16# эрг
 m=0.62*9.1*10**-28# г
 V_0=1.21*1.6*10**-26# эрг*см^2
@@ -35,9 +35,9 @@ Y, X = np.meshgrid(
     np.linspace(0, Ny-1, Ny),
     np.linspace(0, Nx-1, Nx)
 )
-Z=0*X*Y+10**-10
+Z=0*X*Y+10**-7
 #Элемент (x,y) определён как Z[x][y]
-for j in range(1,Ny-1):
+for j in range(2,Ny-2):
     Z[1][j]=1
 Vx=0*X*Y#+dx*(X-(Nx-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
 #поле проекции скоростей Vx
@@ -71,20 +71,20 @@ def makeplot():
     for i in range(0,Nx-2):
         for j in range(0,Ny-2):
             VVy[i][j]=Vy[i+1][j+1]
-    cs = plt.contourf(dx*XX,dy*YY,ZZ*N_0,levels=15)#ZZ*N_0
+    cs = plt.contourf(dx*XX,dy*YY,ZZ*N_0,cmap='jet',levels=15)#ZZ*N_0
     cbar=plt.colorbar(cs)
-    cbar.set_label('Концентрация N, см^-2')
-    plt.title('Время t = '+str(round(t))+' пс')
+    cbar.set_label('Концентрация N, см^-2') 
+    plt.title('Время t = '+str(t)+' пс')
     plt.xlabel('Ось X, мкм')
     plt.ylabel('Ось Y, мкм')
-    if t==0:
+    """if t==0:
         print(ZZ)
     if round(t)==250:
         print(ZZ)
     if round(t)==500:
         print(ZZ)
     if round(t)==750:
-        print(ZZ)
+        print(ZZ)"""
 def Eq1(x,y):
     N1=-Z[x][y]*(D_x(Vx,x,y)+D_y(Vy,x,y))
     N2=-Vx[x][y]*D_x(Z,x,y)-Vy[x][y]*D_y(Z,x,y)
@@ -103,6 +103,8 @@ def Eq3(x,y):
     N4=D*D_y(Z,x,y)*(D_y(Vy,x,y)-D_x(Vx,x,y))/Z[x][y]
     N5=D*D_x(Z,x,y)*(D_x(Vy,x,y)+D_y(Vx,x,y))/Z[x][y]
     return N1+N2+N3+N4+N5
+
+    
 P=1
 def EulerStep(frame):
     global Z,Vx,Vy,t,dt,P
@@ -114,18 +116,14 @@ def EulerStep(frame):
     VVy=0*X*Y
     
     for k in range(P):#количество итераций за фрейм анимации
-        if t>=dt*10:
+        if t>10*dt:
             dt=dt*10
-        if dt>10**-3:
-            dt=10**-3
-        if t>0.1:
+        if t>0.01:
+            dt=0.001
+        if t>0.2:
             dt=0.01
         if t>2:
             dt=0.1
-            P=10
-        if t>15:
-            dt=0.25
-            P=50
         if round(t)==250:
             plt.clf()
             makeplot()
@@ -135,34 +133,41 @@ def EulerStep(frame):
         if round(t)==750:#Время (пс), на котором нужно остановить расчёт
             plt.clf()
             makeplot()
+            plt.title('Время t = '+str(round(t))+' пс')
             anim.event_source.stop()
-        for i in range(0,Nx):
-            Z[i][0]=Z[i][1]
-            Z[i][Ny-1]=Z[i][Ny-2]
+        """for i in range(0,Nx):
+            Z[i][0]=2*Z[i][1]-Z[i][2]
+            Z[i][Ny-1]=2*Z[i][Ny-2]-Z[i][Ny-3]
+            Vy[i][0]=2*Vy[i][1]-Vy[i][2]
+            Vy[i][Ny-1]=2*Vy[i][Ny-2]-Vy[i][Ny-3]
+            Vx[i][0]=2*Vx[i][1]-Vx[i][2]
+            Vx[i][Ny-1]=2*Vx[i][Ny-2]-Vx[i][Ny-3]
         for j in range(0,Ny):
-            Z[0][j]=Z[1][j]
-        for i in range(1,Nx-2): 
+            Z[0][j]=2*Z[1][j]-Z[2][j]
+            Vx[0][j]=2*Vx[1][j]-Vx[2][j]
+            Vy[0][j]=2*Vy[1][j]-Vy[2][j]
+            Z[Nx-1][j]=2*Z[Nx-2][j]-Z[Nx-3][j]
+            Vx[Nx-1][j]=2*Vx[Nx-2][j]-Vx[Nx-3][j]
+            Vy[Nx-1][j]=2*Vy[Nx-2][j]-Vy[Nx-3][j]"""
+        for i in range(1,Nx-1): 
             for j in range(1,Ny-1):
                 ZZ[i][j]=Z[i][j]+Eq1(i,j)*dt#уравнение непрерывноести
-                if ZZ[i][j]==0:
-                    VVx[i][j]=Vx[i][j]
-                    VVy[i][j]=Vy[i][j]
-                else:
-                    VVx[i][j]=Vx[i][j]+Eq2(i,j)*dt#гидродинамическое
-                    VVy[i][j]=Vy[i][j]+Eq3(i,j)*dt#гидродинамическое
-        for i in range(0,Nx-2):
+                VVx[i][j]=Vx[i][j]+Eq2(i,j)*dt#гидродинамическое
+                VVy[i][j]=Vy[i][j]+Eq3(i,j)*dt#гидродинамическое
+        for i in range(1,Nx-1):
             VVx[i][1]=0
             VVx[i][Ny-2]=0
-        for j in range(0,Ny):
+        for j in range(1,Ny-1):
             VVy[1][j]=0
-            #VVy[i][1]=0
-            #VVy[i][Ny-2]=0
-        ZZ[1][1]=ZZ[1][2]
-        ZZ[1][Ny-2]=ZZ[1][Ny-3]
+            VVy[Nx-2][j]=0
         Z=ZZ
         Vx=VVx
         Vy=VVy
-       # print(Z[2][2])
+        Count=0
+        for i in range(1,Nx-2): 
+            for j in range(1,Ny-2):
+                Count=Count+Z[i][j]
+        print(str(Count)+'\t'+str(Vx[2][2]))
         t=t+dt
         
 plt.rcParams ['figure.figsize'] = [30*Lx/(Lx+Ly), 30*Ly/(Lx+Ly)]
@@ -170,3 +175,5 @@ fig,cs=plt.subplots()
 makeplot()
 anim=FuncAnimation(fig,EulerStep,frames=None)
 plt.show()
+
+
