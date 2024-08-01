@@ -56,9 +56,11 @@ def Lap(N,x,y):#Взятие лапласиана
     N2=(N[x][y+1]-2*N[x][y]+N[x][y-1])/(dy*dy)
     return N1+N2
 def makeplot():
+    XLine=np.linspace(0, Nx-3, Nx-2)
+    Yline=np.linspace(0, Ny-3, Ny-2)
     YY, XX = np.meshgrid(
-        np.linspace(0, Ny-3, Ny-2),
-        np.linspace(0, Nx-3, Nx-2)
+        Yline,
+        XLine
     )
     ZZ=0*YY*XX
     VVx=0*YY*XX
@@ -92,7 +94,7 @@ def makeplot():
     for i in range(0,2*Nx-5):
         for j in range(0,Ny-2):
             ZZZ[i][j]=ZZZ[i][(2*Ny-6)-j]"""
-    cs = plt.contourf(dx*XX,dy*YY,ZZ*N_0,cmap='jet',levels=20)#ZZ*N_0
+    cs = plt.contourf(dx*XX,dy*YY,ZZ*N_0,cmap='jet',levels=15)#ZZ*N_0
     cbar=plt.colorbar(cs)
     cbar.set_label('Концентрация N, см^-2') 
     plt.title('Время t = '+str(t)+' пс (Гидродинамика)')
@@ -166,6 +168,8 @@ def EulerStep(frame):
         for i in range(1,Nx-1):
             Vx[i][1]=0
             Vx[i][Ny-2]=0
+            Vy[i][1]=0
+            Vy[i][Ny-2]=0
         for j in range(1,Ny-1):
             Vy[1][j]=0
             Vy[Nx-2][j]=0
@@ -260,5 +264,3 @@ fig,cs=plt.subplots()
 makeplot()
 anim=FuncAnimation(fig,EulerStep,frames=None)
 plt.show()
-
-    
