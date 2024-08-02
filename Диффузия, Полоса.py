@@ -5,12 +5,12 @@ import matplotlib.pyplot as plt
 параметры вводятся в СГС, а расчёты ведутся в (пс,мкм,N0)'''
 Pi=3.141592653589
 #ВВод начальных параметров, СГС
-Nx=101#количество узлов сетки
-Ny=21
-Lx=5*10**-4# см 
-Ly=1*10**-4# см 
+Nx=100#количество узлов сетки
+Ny=20
+Lx=3*10**-4# см 
+Ly=0.5*10**-4# см 
 N_0=1*10**11# см^-2
-D_0=1*10**0# см^2/сек
+D_0=3*10**0# см^2/сек
 R_a=1*10**-1# см^2/сек
 V0D0_KbT=1*10**-10# см^4/сек
 tau=500*10**-12# сек
@@ -26,7 +26,7 @@ D=V0D0_KbT*N_0*10**-4#мкм^2/пс
 dx=Lx*10**4/(Nx-1)
 dy=Ly*10**4/(Ny-1)#Шаги сетки по осям Х и У, мкм
 t=0#время
-dt=0.5#пс
+dt=10**-3#пс
 Y, X = np.meshgrid(
     np.linspace(0, Ny-1, Ny),
     np.linspace(0, Nx-1, Nx)
@@ -38,17 +38,52 @@ for j in range(0,Ny):
     
 
 def makeplot():
-    cs = plt.contourf(dx*X,dy*Y,Z*N_0,levels=15)
+    cs = plt.contourf(dx*X,dy*Y,Z*N_0,cmap='jet',levels=10)
     cbar=plt.colorbar(cs)
     cbar.set_label('Концентрация N, см^-2')
-    plt.title('Время t = '+str(t)+' пс')
+    plt.title('Время t = '+str(round(t))+' пс (Диффузия)')
     plt.xlabel('Ось X, мкм')
     plt.ylabel('Ось Y, мкм')
+P=1
 def EulerStep(frame):
-    global Z,t
+    global Z,t,dt,P
+    plt.clf()
+    makeplot()
     ZZ=0*X*Y
     
-    for k in range(10):#количество итераций за фрейм
+    for k in range(P):#количество итераций за фрейм
+        if round(t)==250:
+            plt.clf()
+            makeplot()
+            plt.savefig('DP1.png')
+        if round(t)==500:
+            plt.clf()
+            makeplot()
+            plt.savefig('DP2.png')
+        if round(t)==750:
+            plt.clf()
+            makeplot()
+            plt.savefig('DP3.png')
+        if round(t)==1000:
+            plt.clf()
+            makeplot()
+            plt.savefig('DP4.png')
+            anim.event_source.stop()
+        if t>10*dt:
+            dt=dt*10
+        if t>0.001:
+            dt=0.0001
+        if t>0.01:
+            dt=0.001
+        if t>0.1:
+            dt=0.01
+        if t>1:
+            dt=0.1
+        if t>10:
+            dt=0.5
+            P=10
+        if t>100:
+            P=100
         for j in range(1,Ny-1):#Граничное условие
             N1=A*Z[0][j]+B*Z[0][j]*Z[0][j]
             N2=C*((Z[0][j+1]-2*Z[0][j]+Z[0][j-1])/(dy*dy)+(Z[1][j]-2*Z[0][j]+Z[0][j])/(dx*dx))
@@ -81,12 +116,11 @@ def EulerStep(frame):
         
         t=t+dt
         Z=ZZ
-    plt.clf()
-    makeplot()
-    if t==500:#Время (пс), на котором нужно остановить расчёт
-        anim.event_source.stop()
+    
+    
 plt.rcParams ['figure.figsize'] = [30*Lx/(Lx+Ly), 30*Ly/(Lx+Ly)]
 fig,cs=plt.subplots()
 makeplot()
+plt.savefig('DP0.png')
 anim=FuncAnimation(fig,EulerStep,frames=None)
 plt.show()

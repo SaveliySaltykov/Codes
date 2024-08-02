@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 Pi=3.141592653589
 #ВВод начальных параметров, СГС
 Nx=33#количество узлов сетки
-Ny=43
+Ny=19
 Lx=3*10**-4# см 
 Ly=0.5*10**-4# см 
 tau_0=5.3*10**-12# сек 
@@ -65,15 +65,34 @@ def makeplot():
     VVy=0*YY*XX
     for i in range(0,Nx-2):
         for j in range(0,Ny-2):
-            ZZ[i][j]=(Z[i+1][j]+Z[i+1][j+1]+Z[i+1][j+2])/3
+            ZZ[i][j]=Z[i+1][j+1]
     for i in range(0,Nx-2):
         for j in range(0,Ny-2):
             VVx[i][j]=Vx[i+1][j+1]
     for i in range(0,Nx-2):
         for j in range(0,Ny-2):
             VVy[i][j]=Vy[i+1][j+1]
+    #Пробую интерполяцию для сглаживания
+    """YYY, XXX = np.meshgrid(
+        np.linspace(0, (Ny-2)*2-2, (Ny-2)*2-1),
+        np.linspace(0, (Nx-2)*2-2, (Nx-2)*2-1)
+    )
+    points=[[2*x,2*y] for x in XLine for y in Yline]
+
+    for i in range(0,Nx-2):
+        ZZ[i][0]=ZZ[i][1]
+        ZZ[i][Nx-3]=ZZ[i][Nx-4]
+    values=np.append([],ZZ)
     
-    cs = plt.contourf(dx*XX,dy*YY,ZZ*N_0,cmap='jet',levels=10)#ZZ*N_0
+    ZZZ = griddata(points,values,(XXX,YYY),method='cubic')
+    for i in range(0,2*Nx-5):
+        for j in range (0,2*Ny-5):
+            if ZZZ[i][j]<0:
+                ZZZ[i][j]=0
+    for i in range(0,2*Nx-5):
+        for j in range(0,Ny-2):
+            ZZZ[i][j]=ZZZ[i][(2*Ny-6)-j]"""
+    cs = plt.contourf(dx*XX,dy*YY,ZZ*N_0,cmap='jet',levels=20)#ZZ*N_0
     cbar=plt.colorbar(cs)
     cbar.set_label('Концентрация N, см^-2') 
     plt.title('Время t = '+str(t)+' пс (Гидродинамика)')
@@ -119,10 +138,10 @@ def Granich(N,NVx,NVy):
         N[Nx-1][j]=N[Nx-2][j]
         NVx[Nx-1][j]=-NVx[Nx-2][j]
         NVy[Nx-1][j]=-NVy[Nx-2][j]
-    N[1][1]=N[2][1]
-    N[Nx-2][1]=N[Nx-3][1]
-    N[1][Ny-2]=N[2][Ny-2]
-    N[Nx-2][Ny-2]=N[Nx-3][Ny-2]
+    #N[1][1]=N[2][1]
+    #N[Nx-2][1]=N[Nx-3][1]
+    #N[1][Ny-2]=N[2][Ny-2]
+    #N[Nx-2][Ny-2]=N[Nx-3][Ny-2]
     return N,NVx,NVy    
 P=1
 def EulerStep(frame):
@@ -173,23 +192,17 @@ def EulerStep(frame):
         if t>0.2:
             dt=0.01
         if t>2:
-            dt=0.1"""
+            dt=0.1
         if round(t)==250:
             plt.clf()
             makeplot()
-            plt.savefig('GP1.png')
         if round(t)==500:
             plt.clf()
-            makeplot()
-            plt.savefig('GP2.png')
-        if round(t)==750:
-            plt.clf()
-            makeplot()
-            plt.savefig('GP3.png')
+            makeplot()  """  
         if round(t)==1000:#Время (пс), на котором нужно остановить расчёт
             plt.clf()
             makeplot()
-            plt.savefig('GP4.png')
+            plt.title('Время t = '+str(round(t))+' пс')
             anim.event_source.stop()
         
         """for i in range(0,Nx):#Почему-то эти условия для слоёв за стенкой вызывают рост частиц полсе первой пикосекунды
@@ -211,7 +224,7 @@ def EulerStep(frame):
             for j in range(1,Ny-1):
                 DZ1[i][j]=Eq1(Z,Vx,Vy,i,j)#уравнение непрерывноести
                 DVx1[i][j]=Eq2(Z,Vx,Vy,i,j)#гидродинамическое
-              #  DVy1[i][j]=Eq3(Z,Vx,Vy,i,j)#гидродинамическое
+             #   DVy1[i][j]=Eq3(Z,Vx,Vy,i,j)#гидродинамическое
         DZ1,DVx1,DVy1=Granich(DZ1,DVx1,DVy1)
         for i in range(1,Nx-1): 
             for j in range(1,Ny-1):
@@ -223,13 +236,13 @@ def EulerStep(frame):
             for j in range(1,Ny-1):
                 DZ3[i][j]=Eq1(Z+dt*DZ2/2,Vx+dt*DVx2/2,Vy+dt*DVy2/2,i,j)#уравнение непрерывноести
                 DVx3[i][j]=Eq2(Z+dt*DZ2/2,Vx+dt*DVx2/2,Vy+dt*DVy2/2,i,j)#гидродинамическое
-                DVy3[i][j]=Eq3(Z+dt*DZ2/2,Vx+dt*DVx2/2,Vy+dt*DVy2/2,i,j)#гидродинамическое
+             #   DVy3[i][j]=Eq3(Z+dt*DZ2/2,Vx+dt*DVx2/2,Vy+dt*DVy2/2,i,j)#гидродинамическое
         DZ3,DVx3,DVy3=Granich(DZ3,DVx3,DVy3)
         for i in range(1,Nx-1): 
             for j in range(1,Ny-1):
                 DZ1[i][j]=Eq1(Z+dt*DZ3,Vx+dt*DVx3,Vy+dt*DVy3,i,j)#уравнение непрерывноести
                 DVx1[i][j]=Eq2(Z+dt*DZ3,Vx+dt*DVx3,Vy+dt*DVy3,i,j)#гидродинамическое
-              #  DVy1[i][j]=Eq3(Z+dt*DZ3,Vx+dt*DVx3,Vy+dt*DVy3,i,j)#гидродинамическое
+             #   DVy1[i][j]=Eq3(Z+dt*DZ3,Vx+dt*DVx3,Vy+dt*DVy3,i,j)#гидродинамическое
         DZ4,DVx4,DVy4=Granich(DZ4,DVx4,DVy4)
         Z=Z+dt*(DZ1+2*DZ2+2*DZ3+DZ4)/6
         Vx=Vx+dt*(DVx1+2*DVx2+2*DVx3+DVx4)/6
@@ -238,13 +251,11 @@ def EulerStep(frame):
         for i in range(1,Nx-1): 
             for j in range(1,Ny-1):
                 Count=Count+Z[i][j]
-       # print(str(Count)+'\t'+str(Z[10][2])+'\t'+str(Z[10][10])+'\t'+str(Z[10][15]))
+        #print(str(Count)+'\t'+str(Z[10][2])+'\t'+str(Z[10][10])+'\t'+str(Z[10][15]))
         t=t+dt
         
 plt.rcParams ['figure.figsize'] = [30*Lx/(Lx+Ly), 30*Ly/(Lx+Ly)]
 fig,cs=plt.subplots()
 makeplot()
-#anim=FuncAnimation(fig,EulerStep,frames=None)
+anim=FuncAnimation(fig,EulerStep,frames=None)
 plt.show()
-
-    
