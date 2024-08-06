@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 Pi=3.141592653589
 #ВВод начальных параметров, СГС
 Nx=33#количество узлов сетки
-Ny=43
+Ny=48
 Lx=3*10**-4# см 
-Ly=0.5*10**-4# см 
+Ly=1.0*10**-4# см 
 tau_0=5.3*10**-12# сек 
 KbT=5.52*10**-16# эрг
 m=0.62*9.1*10**-28# г
@@ -36,10 +36,8 @@ Y, X = np.meshgrid(
     np.linspace(0, Ny-1, Ny),
     np.linspace(0, Nx-1, Nx)
 )
-Z=0*X*Y+10**-10
+Z=np.exp(-1/R_0/R_0*10**-8*((dx*(X-1))**2+(dy*(Y-(Ny-1)/2))**2))+10**-10
 #Элемент (x,y) определён как Z[x][y]
-for j in range(2,Ny-2):
-    Z[1][j]=1
 Vx=0*X*Y#+dx*(X-(Nx-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
 #поле проекции скоростей Vx
 Vy=0*X*Y#+dy*(Y-(Ny-1)/2)/R_0*np.sqrt(KbT/m)*10**-12# мкм/пс
@@ -65,7 +63,7 @@ def makeplot():
     VVy=0*YY*XX
     for i in range(0,Nx-2):
         for j in range(0,Ny-2):
-            ZZ[i][j]=(Z[i+1][j]+Z[i+1][j+1]+Z[i+1][j+2])/3
+            ZZ[i][j]=(Z[i+1][j]+2*Z[i+1][j+1]+Z[i+1][j+2]+Z[i][j+1]+Z[i+2][j+1])/6
     for i in range(0,Nx-2):
         for j in range(0,Ny-2):
             VVx[i][j]=Vx[i+1][j+1]
@@ -73,7 +71,7 @@ def makeplot():
         for j in range(0,Ny-2):
             VVy[i][j]=Vy[i+1][j+1]
     
-    cs = plt.contourf(dx*XX,dy*YY,ZZ*N_0,cmap='jet',levels=10)#ZZ*N_0
+    cs = plt.contourf(dx*XX,dy*YY,ZZ*N_0,cmap='jet',levels=15)#ZZ*N_0
     cbar=plt.colorbar(cs)
     cbar.set_label('Концентрация N, см^-2') 
     plt.title('Время t = '+str(t)+' пс (Гидродинамика)')
@@ -241,10 +239,10 @@ def EulerStep(frame):
        # print(str(Count)+'\t'+str(Z[10][2])+'\t'+str(Z[10][10])+'\t'+str(Z[10][15]))
         t=t+dt
         
-plt.rcParams ['figure.figsize'] = [30*Lx/(Lx+Ly), 30*Ly/(Lx+Ly)]
+plt.rcParams ['figure.figsize'] = [27*Lx/(Lx+Ly), 27*Ly/(Lx+Ly)]
 fig,cs=plt.subplots()
 makeplot()
-#anim=FuncAnimation(fig,EulerStep,frames=None)
+anim=FuncAnimation(fig,EulerStep,frames=None)
 plt.show()
 
     
